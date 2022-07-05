@@ -6,9 +6,9 @@ from pathlib import Path
 
 # 动
 os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
-folder_ = "/home/deepliver2/Disksdd/menjingru/dataset"
+folder_ = "E:\dataset"
 
-source_path = '/home/deepliver2/Disksdd/spleen_5mm'
+source_path = 'E:\NRRD'
 
 
 # 不动
