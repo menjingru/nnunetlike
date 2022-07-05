@@ -3,6 +3,7 @@
 # 环境配置
 import os
 from pathlib import Path
+import platform
 
 # 动
 os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
@@ -27,5 +28,8 @@ nnUNet_raw_data.mkdir(exist_ok=True,parents=True)
 nnUNet_cropped_data.mkdir(exist_ok=True,parents=True)
 
 # 默认线程8
-default_num_threads = 8
+if (platform.system() == 'Windows'):
+    default_num_threads = 1
+else:
+    default_num_threads = 8
 
