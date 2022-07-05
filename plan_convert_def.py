@@ -8,6 +8,7 @@ import shutil
 from multiprocessing import Pool
 import SimpleITK as sitk
 import numpy as np
+import platform
 
 
 
@@ -15,7 +16,7 @@ import numpy as np
 def crawl_(folder):  # folder 输入文件夹
 
     # 验证文件名格式、子文件存在
-    assert folder.split('/')[-1].startswith("Task"), "以TaskXX开头，并包含子文件夹imagesTr、labelsTr、imagesTs的文件夹"
+    assert folder.split(os.sep)[-1].startswith("Task"), "以TaskXX开头，并包含子文件夹imagesTr、labelsTr、imagesTs的文件夹"
     subf = subfolders(folder, join=False)
     assert 'imagesTr' in subf, "没imagesTr"
     assert 'imagesTs' in subf, "没imagesTs"
@@ -41,6 +42,7 @@ def split_4d_nifti(filename, output_folder, add_zeros=False):
     # 如果四维，不干了
     # 如果二维，删除第四个维度
     if dim == 3:
+        print(filename)
         shutil.copy(filename, output_folder/(file_base[:-7]+"_0000.nii.gz"))
 
         return
@@ -88,15 +90,14 @@ def split_(input_folder, num_processes=default_num_threads):
     overwrite_task_output_id = input_task_id
     # 项目名
     task_name = full_task_name[7:]
-
     # 清空、建立、填充输出文件夹----------------------------------------------------------------------------------
     # 输出文件夹命名
+
     output_folder = Path(nnUNet_raw_data) / str("Task%03d_%s" % (overwrite_task_output_id,task_name))  # %03d 3占位0填充十进制
     output_folder.mkdir(exist_ok=True, parents=True)
 
     # 输出文件夹清空
     shutil.rmtree(output_folder)
-
 
     files = []  # 输入图绝对地址（文件）
     output_dirs = []  # 输出绝对地址（文件夹）
@@ -118,12 +119,16 @@ def split_(input_folder, num_processes=default_num_threads):
     # 标签、json直接复制
     shutil.copytree(input_folder/"labelsTr", output_folder/"labelsTr")
     shutil.copy(join(input_folder, "dataset.json"), output_folder)
-
     # 多线程执行*1（同一为三维数据）
-    p = Pool(num_processes)
-    p.starmap(split_4d_nifti, zip(files, output_dirs))  # zip为变量，split_4_nifti为函数
-    p.close()
-    p.join()
+    if (platform.system() == 'Windows'):
+        print('Windows系统')
+        for i in range(len(files)):
+            split_4d_nifti(files[i], output_dirs[i])
+    else:
+        p = Pool(num_processes)
+        p.starmap(split_4d_nifti, zip(files, output_dirs))  # zip为变量，split_4_nifti为函数
+        p.close()
+        p.join()
 
 
 
